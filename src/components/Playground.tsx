@@ -13,6 +13,7 @@ import Workspace, { WorkspaceProps } from './workspace';
 import {
   AutorunButtons,
   ChapterSelect,
+  LazyModeSelect,
   ClearButton,
   EvalButton,
   ExecutionTime,
@@ -61,6 +62,7 @@ export interface IStateProps {
   isRunning: boolean;
   isDebugging: boolean;
   enableDebugging: boolean;
+  lazyMode: boolean;
   output: InterpreterOutput[];
   queryString?: string;
   replValue: string;
@@ -79,6 +81,7 @@ export interface IDispatchProps {
   handleBrowseHistoryUp: () => void;
   handleChangeExecTime: (execTime: number) => void;
   handleChapterSelect: (chapter: number) => void;
+  handleLazyModeSelect: (newLazyModeValue: boolean) => void;
   handleEditorEval: () => void;
   handleEditorHeightChange: (height: number) => void;
   handleEditorValueChange: (val: string) => void;
@@ -165,6 +168,17 @@ class Playground extends React.Component<IPlaygroundProps, PlaygroundState> {
         handleChapterSelect={chapterSelectHandler}
         sourceChapter={this.props.sourceChapter}
         key="chapter"
+      />
+    );
+
+    const lazyModeSelectHandler = (newLazyModeValue: boolean, e: any) => {
+      this.props.handleLazyModeSelect(newLazyModeValue);
+    };
+    const lazyModeSelect = (
+      <LazyModeSelect
+        handleLazyModeSelect={lazyModeSelectHandler}
+        currentLazyMode={this.props.lazyMode}
+        key="lazyEvaluation"
       />
     );
 
@@ -256,6 +270,7 @@ class Playground extends React.Component<IPlaygroundProps, PlaygroundState> {
           autorunButtons,
           shareButton,
           chapterSelect,
+          lazyModeSelect,
           externalLibrarySelect,
           sessionButtons,
           executionTime

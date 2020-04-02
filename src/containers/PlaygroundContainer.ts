@@ -12,6 +12,7 @@ import {
   changeExecTime,
   changeSideContentHeight,
   chapterSelect,
+  lazyModeSelect,
   clearReplOutput,
   debuggerReset,
   debuggerResume,
@@ -55,6 +56,7 @@ const mapStateToProps: MapStateToProps<IStateProps, {}, IState> = state => ({
   sharedbAceInitValue: state.workspaces.playground.sharedbAceInitValue,
   sideContentHeight: state.workspaces.playground.sideContentHeight,
   sourceChapter: state.workspaces.playground.context.chapter,
+  lazyMode: state.workspaces.playground.lazyMode,
   websocketStatus: state.workspaces.playground.websocketStatus,
   externalLibraryName: state.workspaces.playground.externalLibrary,
   usingSubst: state.playground.usingSubst
@@ -72,6 +74,7 @@ const mapDispatchToProps: MapDispatchToProps<IDispatchProps, {}> = (dispatch: Di
       handleChangeExecTime: (execTime: number) =>
         changeExecTime(execTime.toString(), workspaceLocation),
       handleChapterSelect: (chapter: number) => chapterSelect(chapter, workspaceLocation),
+      handleLazyModeSelect: (newLazyModeValue: boolean) => lazyModeSelect(newLazyModeValue, workspaceLocation),
       handleEditorEval: () => evalEditor(workspaceLocation),
       handleEditorValueChange: (val: string) => updateEditorValue(val, workspaceLocation),
       handleEditorHeightChange: (height: number) => changeEditorHeight(height, workspaceLocation),

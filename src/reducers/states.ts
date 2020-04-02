@@ -109,6 +109,7 @@ export interface IWorkspaceState {
   readonly isDebugging: boolean;
   readonly enableDebugging: boolean;
   readonly isEditorAutorun: boolean;
+  readonly lazyMode: boolean;
   readonly output: InterpreterOutput[];
   readonly externalLibrary: ExternalLibraryName;
   readonly replHistory: ReplHistory;
@@ -269,6 +270,7 @@ export const createDefaultWorkspace = (workspaceLocation: WorkspaceLocation): IW
   externalLibrary: ExternalLibraryNames.NONE,
   execTime: 1000,
   highlightedLines: [],
+  lazyMode: false,
   output: [],
   replHistory: {
     browseIndex: null,

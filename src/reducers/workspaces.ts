@@ -34,6 +34,7 @@ import {
   SEND_REPL_INPUT_TO_OUTPUT,
   SET_EDITOR_READONLY,
   SET_EDITOR_SESSION_ID,
+  LAZY_MODE_SELECT,
   SET_WEBSOCKET_STATUS,
   TOGGLE_EDITOR_AUTORUN,
   UPDATE_ACTIVE_TAB,
@@ -586,6 +587,14 @@ export const reducer: Reducer<IWorkspaceManagerState> = (
         [workspaceLocation]: {
           ...state[workspaceLocation],
           isEditorAutorun: !state[workspaceLocation].isEditorAutorun
+        }
+      };
+    case LAZY_MODE_SELECT:
+      return {
+        ...state,
+        [workspaceLocation]: {
+          ...state[workspaceLocation],
+          lazyMode: action.payload.newLazyMode
         }
       };
     case UPDATE_ACTIVE_TAB:

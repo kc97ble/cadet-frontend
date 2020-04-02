@@ -55,6 +55,9 @@ export default function* workspaceSaga(): SagaIterator {
     const execTime: number = yield select(
       (state: IState) => (state.workspaces[workspaceLocation] as IWorkspaceState).execTime
     );
+    const lazyMode: boolean = yield select(
+      (state: IState) => (state.workspaces[workspaceLocation] as IWorkspaceState).lazyMode
+    );
     const symbols: string[] = yield select(
       (state: IState) =>
         (state.workspaces[workspaceLocation] as IWorkspaceState).context.externalSymbols
@@ -87,13 +90,14 @@ export default function* workspaceSaga(): SagaIterator {
         elevatedContext,
         execTime,
         workspaceLocation,
-        actionTypes.EVAL_SILENT
+        actionTypes.EVAL_SILENT,
+        lazyMode
       );
       // Block use of methods from privileged context
-      yield* blockExtraMethods(elevatedContext, context, execTime, workspaceLocation);
+      yield* blockExtraMethods(elevatedContext, context, execTime, workspaceLocation, lazyMode);
     }
 
-    yield* evalCode(value, context, execTime, workspaceLocation, actionTypes.EVAL_EDITOR);
+    yield* evalCode(value, context, execTime, workspaceLocation, actionTypes.EVAL_EDITOR, lazyMode);
   });
 
   yield takeEvery(actionTypes.TOGGLE_EDITOR_AUTORUN, function*(
@@ -120,13 +124,16 @@ export default function* workspaceSaga(): SagaIterator {
     const execTime: number = yield select(
       (state: IState) => (state.workspaces[workspaceLocation] as IWorkspaceState).execTime
     );
+    const lazyMode: boolean = yield select(
+      (state: IState) => (state.workspaces[workspaceLocation] as IWorkspaceState).lazyMode
+    );
     yield put(actions.beginInterruptExecution(workspaceLocation));
     yield put(actions.clearReplInput(workspaceLocation));
     yield put(actions.sendReplInputToOutput(code, workspaceLocation));
     context = yield select(
       (state: IState) => (state.workspaces[workspaceLocation] as IWorkspaceState).context
     );
-    yield* evalCode(code, context, execTime, workspaceLocation, actionTypes.EVAL_REPL);
+    yield* evalCode(code, context, execTime, workspaceLocation, actionTypes.EVAL_REPL, lazyMode);
   });
 
   yield takeEvery(actionTypes.DEBUG_RESUME, function*(
@@ -139,6 +146,9 @@ export default function* workspaceSaga(): SagaIterator {
     const execTime: number = yield select(
       (state: IState) => (state.workspaces[workspaceLocation] as IWorkspaceState).execTime
     );
+    const lazyMode: boolean = yield select(
+      (state: IState) => (state.workspaces[workspaceLocation] as IWorkspaceState).lazyMode
+    );
     yield put(actions.beginInterruptExecution(workspaceLocation));
     /** Clear the context, with the same chapter and externalSymbols as before. */
     yield put(actions.clearReplOutput(workspaceLocation));
@@ -146,7 +156,7 @@ export default function* workspaceSaga(): SagaIterator {
       (state: IState) => (state.workspaces[workspaceLocation] as IWorkspaceState).context
     );
     yield put(actions.highlightEditorLine([], workspaceLocation));
-    yield* evalCode(code, context, execTime, workspaceLocation, actionTypes.DEBUG_RESUME);
+    yield* evalCode(code, context, execTime, workspaceLocation, actionTypes.DEBUG_RESUME, lazyMode);
   });
 
   yield takeEvery(actionTypes.DEBUG_RESET, function*(
@@ -203,6 +213,9 @@ export default function* workspaceSaga(): SagaIterator {
     const execTime: number = yield select(
       (state: IState) => (state.workspaces[workspaceLocation] as IWorkspaceState).execTime
     );
+    const lazyMode: boolean = yield select(
+      (state: IState) => (state.workspaces[workspaceLocation] as IWorkspaceState).lazyMode
+    );
 
     // Do not interrupt execution of other testcases (potential race condition)
     // No need to clear the context, since a shard context will be used for testcase execution
@@ -220,13 +233,13 @@ export default function* workspaceSaga(): SagaIterator {
 
     // Execute prepend silently in privileged context
     const elevatedContext = makeElevatedContext(context);
-    yield* evalCode(prepend, elevatedContext, execTime, workspaceLocation, actionTypes.EVAL_SILENT);
+    yield* evalCode(prepend, elevatedContext, execTime, workspaceLocation, actionTypes.EVAL_SILENT, lazyMode);
 
     // Block use of methods from privileged context using a randomly generated blocking key
     // Then execute student program silently in the original workspace context
     const blockKey = String(random(1048576, 68719476736));
-    yield* blockExtraMethods(elevatedContext, context, execTime, workspaceLocation, blockKey);
-    yield* evalCode(value, context, execTime, workspaceLocation, actionTypes.EVAL_SILENT);
+    yield* blockExtraMethods(elevatedContext, context, execTime, workspaceLocation, lazyMode, blockKey);
+    yield* evalCode(value, context, execTime, workspaceLocation, actionTypes.EVAL_SILENT, lazyMode);
 
     // Halt execution if the student's code in the editor results in an error
     if (context.errors.length) {
@@ -237,15 +250,16 @@ export default function* workspaceSaga(): SagaIterator {
     if (postpend) {
       // TODO: consider doing a swap. If the user has modified any of the variables,
       // i.e. reusing any of the "reserved" names, prevent it from being accessed in the REPL.
-      yield* restoreExtraMethods(elevatedContext, context, execTime, workspaceLocation, blockKey);
+      yield* restoreExtraMethods(elevatedContext, context, execTime, workspaceLocation, blockKey, lazyMode);
       yield* evalCode(
         postpend,
         elevatedContext,
         execTime,
         workspaceLocation,
-        actionTypes.EVAL_SILENT
+        actionTypes.EVAL_SILENT,
+        lazyMode
       );
-      yield* blockExtraMethods(elevatedContext, context, execTime, workspaceLocation, blockKey);
+      yield* blockExtraMethods(elevatedContext, context, execTime, workspaceLocation, lazyMode, blockKey);
     }
     // Finally execute the testcase function call in the privileged context
     yield* evalTestCode(testcase, elevatedContext, execTime, workspaceLocation, index, type);
@@ -280,6 +294,12 @@ export default function* workspaceSaga(): SagaIterator {
       yield put(actions.debuggerReset(workspaceLocation));
       yield call(showSuccessMessage, `Switched to Source \xa7${newChapter}`, 1000);
     }
+  });
+
+  yield takeEvery(actionTypes.LAZY_MODE_SELECT, function*(
+    action: ReturnType<typeof actions.lazyModeSelect>
+  ) {
+    yield call(showSuccessMessage, action.payload.newLazyMode ? "lazyyyy" : "applicative orderrrr", 1000);
   });
 
   /**
@@ -429,6 +449,7 @@ export function* blockExtraMethods(
   context: Context,
   execTime: number,
   workspaceLocation: WorkspaceLocation,
+  lazyMode: boolean,
   unblockKey?: string
 ) {
   // Extract additional methods available in the elevated context relative to the context
@@ -440,12 +461,13 @@ export function* blockExtraMethods(
       elevatedContext,
       execTime,
       workspaceLocation,
-      actionTypes.EVAL_SILENT
+      actionTypes.EVAL_SILENT,
+      lazyMode
     );
   }
 
   const nullifier = getBlockExtraMethodsString(toBeBlocked);
-  yield* evalCode(nullifier, elevatedContext, execTime, workspaceLocation, actionTypes.EVAL_SILENT);
+  yield* evalCode(nullifier, elevatedContext, execTime, workspaceLocation, actionTypes.EVAL_SILENT, lazyMode);
 }
 
 export function* restoreExtraMethods(
@@ -453,11 +475,12 @@ export function* restoreExtraMethods(
   context: Context,
   execTime: number,
   workspaceLocation: WorkspaceLocation,
-  unblockKey: string
+  unblockKey: string,
+  lazyMode: boolean
 ) {
   const toUnblock = getDifferenceInMethods(elevatedContext, context);
   const restorer = getRestoreExtraMethodsString(toUnblock, unblockKey);
-  yield* evalCode(restorer, elevatedContext, execTime, workspaceLocation, actionTypes.EVAL_SILENT);
+  yield* evalCode(restorer, elevatedContext, execTime, workspaceLocation, actionTypes.EVAL_SILENT, lazyMode);
 }
 
 export function* evalCode(
@@ -465,7 +488,8 @@ export function* evalCode(
   context: Context,
   execTime: number,
   workspaceLocation: WorkspaceLocation,
-  actionType: string
+  actionType: string,
+  lazyMode: boolean
 ) {
   context.runtime.debuggerOn =
     (actionType === actionTypes.EVAL_EDITOR || actionType === actionTypes.DEBUG_RESUME) &&
@@ -501,7 +525,8 @@ export function* evalCode(
         : call(runInContext, code, context, {
             scheduler: 'preemptive',
             originalMaxExecTime: execTime,
-            useSubst: substActiveAndCorrectChapter
+            useSubst: substActiveAndCorrectChapter,
+            useLazyEval: lazyMode
           }),
     /**
      * A BEGIN_INTERRUPT_EXECUTION signals the beginning of an interruption,

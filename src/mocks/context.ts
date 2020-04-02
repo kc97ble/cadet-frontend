@@ -37,7 +37,7 @@ export function mockRuntimeContext(): Context {
 }
 
 export function mockClosure(): Closure {
-  return new Closure({} as FunctionExpression, {} as Environment, {} as Context);
+  return new Closure({} as FunctionExpression, {} as Environment, {} as Context, () => null);
 }
 
 export function mockTypeError(): TypeError {

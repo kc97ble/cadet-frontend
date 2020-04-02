@@ -51,6 +51,13 @@ export const chapterSelect = (chapter: number, workspaceLocation: WorkspaceLocat
     workspaceLocation
   });
 
+export const lazyModeSelect = (newLazyMode: boolean, workspaceLocation: WorkspaceLocation) =>
+  action(actionTypes.LAZY_MODE_SELECT, {
+    newLazyMode,
+    workspaceLocation
+  });
+
+
 export const externalLibrarySelect = (
   externalLibraryName: ExternalLibraryName,
   workspaceLocation: WorkspaceLocation

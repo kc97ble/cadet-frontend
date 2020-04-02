@@ -1,5 +1,6 @@
 export * from './autorunButtons';
 export * from './chapterSelect';
+export * from './lazyModeSelect';
 export * from './clearButton';
 export * from './evalButton';
 export * from './executionTime';
