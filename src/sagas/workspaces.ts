@@ -262,7 +262,7 @@ export default function* workspaceSaga(): SagaIterator {
       yield* blockExtraMethods(elevatedContext, context, execTime, workspaceLocation, lazyMode, blockKey);
     }
     // Finally execute the testcase function call in the privileged context
-    yield* evalTestCode(testcase, elevatedContext, execTime, workspaceLocation, index, type);
+    yield* evalTestCode(testcase, elevatedContext, execTime, workspaceLocation, index, type, lazyMode);
   });
 
   yield takeEvery(actionTypes.CHAPTER_SELECT, function*(
@@ -625,14 +625,16 @@ export function* evalTestCode(
   execTime: number,
   workspaceLocation: WorkspaceLocation,
   index: number,
-  type: TestcaseType
+  type: TestcaseType,
+  lazyMode: boolean
 ) {
   yield put(actions.resetTestcase(workspaceLocation, index));
 
   const { result, interrupted } = yield race({
     result: call(runInContext, code, context, {
       scheduler: 'preemptive',
-      originalMaxExecTime: execTime
+      originalMaxExecTime: execTime,
+      useLazyEval: lazyMode
     }),
     /**
      * A BEGIN_INTERRUPT_EXECUTION signals the beginning of an interruption,
