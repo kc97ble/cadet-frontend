@@ -6,12 +6,12 @@ import sharedbAce from 'sharedb-ace';
 import { require as acequire } from 'ace-builds';
 import 'ace-builds/src-noconflict/ext-language_tools';
 import 'ace-builds/src-noconflict/ext-searchbox';
-import { createContext, getAllOccurrencesInScope, getScope } from 'js-slang';
-import { HighlightRulesSelector, ModeSelector } from 'js-slang/dist/editors/ace/modes/source';
+// import { createContext, getAllOccurrencesInScope } from 'js-slang';
+import { ModeSelector } from 'js-slang/dist/editors/ace/modes/source';
 import 'js-slang/dist/editors/ace/theme/source';
 import { Variant } from 'js-slang/dist/types';
 import { LINKS } from '../../utils/constants';
-import AceRange from './AceRange';
+// import AceRange from './AceRange';
 import { checkSessionIdExists } from './collabEditing/helper';
 
 /**
@@ -61,7 +61,7 @@ export interface IAutocompletionResult {
 class Editor extends React.PureComponent<IEditorProps, {}> {
   public ShareAce: any;
   public AceEditor: React.RefObject<AceEditor>;
-  private markerIds: number[];
+  // private markerIds: number[];
   private onChangeMethod: (newCode: string) => void;
   private onValidateMethod: (annotations: IAnnotation[]) => void;
   private completer: {};
@@ -70,7 +70,7 @@ class Editor extends React.PureComponent<IEditorProps, {}> {
     super(props);
     this.AceEditor = React.createRef();
     this.ShareAce = null;
-    this.markerIds = [];
+    // this.markerIds = [];
     this.onChangeMethod = (newCode: string) => {
       if (this.props.handleUpdateHasUnsavedChanges) {
         this.props.handleUpdateHasUnsavedChanges(true);
@@ -190,7 +190,7 @@ class Editor extends React.PureComponent<IEditorProps, {}> {
     if (variant === undefined) {
       variant = 'default';
     }
-    HighlightRulesSelector(chapter, variant);
+    // HighlightRulesSelector(chapter, variant);
     ModeSelector(chapter);
     return 'source' + chapter.toString();
   };
@@ -288,89 +288,92 @@ class Editor extends React.PureComponent<IEditorProps, {}> {
   };
 
   private handleRefactor = () => {
-    const editor = (this.AceEditor.current as any).editor;
-    if (!editor) {
-      return;
-    }
-    const code = this.props.editorValue;
-    const chapter = this.props.sourceChapter;
-    const position = editor.getCursorPosition();
+    return ;
+    // const editor = (this.AceEditor.current as any).editor;
+    // if (!editor) {
+    //   return;
+    // }
+    // const code = this.props.editorValue;
+    // const chapter = this.props.sourceChapter;
+    // const position = editor.getCursorPosition();
 
-    const sourceLocations = getAllOccurrencesInScope(code, createContext(chapter), {
-      line: position.row + 1, // getCursorPosition returns 0-indexed row, function here takes in 1-indexed row
-      column: position.column
-    });
+    // const sourceLocations = getAllOccurrencesInScope(code, createContext(chapter), {
+    //   line: position.row + 1, // getCursorPosition returns 0-indexed row, function here takes in 1-indexed row
+    //   column: position.column
+    // });
 
-    const selection = editor.getSelection();
-    const ranges = sourceLocations.map(
-      loc => new AceRange(loc.start.line - 1, loc.start.column, loc.end.line - 1, loc.end.column)
-    );
-    ranges.forEach(range => selection.addRange(range));
+    // const selection = editor.getSelection();
+    // const ranges = sourceLocations.map(
+    //   loc => new AceRange(loc.start.line - 1, loc.start.column, loc.end.line - 1, loc.end.column)
+    // );
+    // ranges.forEach(range => selection.addRange(range));
   };
 
   private handleHighlightScope = () => {
-    const editor = (this.AceEditor.current as any).editor;
-    if (!editor) {
-      return;
-    }
-    const code = this.props.editorValue;
-    const chapter = this.props.sourceChapter;
-    const position = editor.getCursorPosition();
+    return;
+    // const editor = (this.AceEditor.current as any).editor;
+    // if (!editor) {
+    //   return;
+    // }
+    // const code = this.props.editorValue;
+    // const chapter = this.props.sourceChapter;
+    // const position = editor.getCursorPosition();
 
-    const ranges = getScope(code, createContext(chapter), {
-      line: position.row + 1,
-      column: position.column
-    });
+    // const ranges = getScope(code, createContext(chapter), {
+    //   line: position.row + 1,
+    //   column: position.column
+    // });
 
-    if (ranges.length !== 0) {
-      ranges.map(range => {
-        // Highlight the scope ranges
-        this.markerIds.push(
-          editor.session.addMarker(
-            new AceRange(
-              range.start.line - 1,
-              range.start.column,
-              range.end.line - 1,
-              range.end.column
-            ),
-            'ace_selection',
-            'text'
-          )
-        );
-      });
-    }
+    // if (ranges.length !== 0) {
+    //   ranges.map(range => {
+    //     // Highlight the scope ranges
+    //     this.markerIds.push(
+    //       editor.session.addMarker(
+    //         new AceRange(
+    //           range.start.line - 1,
+    //           range.start.column,
+    //           range.end.line - 1,
+    //           range.end.column
+    //         ),
+    //         'ace_selection',
+    //         'text'
+    //       )
+    //     );
+    //   });
+    // }
   };
 
   private handleVariableHighlighting = () => {
+    return ;
     // using Ace Editor's way of highlighting as seen here: https://github.com/ajaxorg/ace/blob/master/lib/ace/editor.js#L497
     // We use async blocks so we don't block the browser during editing
 
-    setTimeout(() => {
-      const editor = (this.AceEditor.current as any).editor;
-      const session = editor.session;
-      const code = this.props.editorValue;
-      const chapterNumber = this.props.sourceChapter;
-      const position = editor.getCursorPosition();
-      if (!session || !session.bgTokenizer) {
-        return;
-      }
-      this.markerIds.forEach(id => {
-        session.removeMarker(id);
-      });
-      const ranges = getAllOccurrencesInScope(code, createContext(chapterNumber), {
-        line: position.row + 1,
-        column: position.column
-      }).map(
-        loc => new AceRange(loc.start.line - 1, loc.start.column, loc.end.line - 1, loc.end.column)
-      );
+    // setTimeout(() => {
+    //   const editor = (this.AceEditor.current as any).editor;
+    //   const session = editor.session;
+    //   const code = this.props.editorValue;
+    //   const chapterNumber = this.props.sourceChapter;
+    //   const position = editor.getCursorPosition();
+    //   if (!session || !session.bgTokenizer) {
+    //     return;
+    //   }
+    //   this.markerIds.forEach(id => {
+    //     session.removeMarker(id);
+    //   });
+    //   const ranges = getAllOccurrencesInScope(code, createContext(chapterNumber), {
+    //     line: position.row + 1,
+    //     column: position.column
+    //   }).map(
+    //     loc => new AceRange(loc.start.line - 1, loc.start.column, loc.end.line - 1, loc.end.column)
+    //   );
 
-      const markerType = 'ace_variable_highlighting';
-      const markerIds = ranges.map(range => {
-        // returns the marker ID for removal later
-        return session.addMarker(range, markerType, 'text');
-      });
-      this.markerIds = markerIds;
-    }, 10);
+    //   const markerType = 'ace_variable_highlighting';
+    //   const markerIds = ranges.map(range => {
+    //     // returns the marker ID for removal later
+    //     return session.addMarker(range, markerType, 'text');
+    //   });
+    //   this.markerIds = markerIds;
+    // }, 10);
   };
 
   private handleGutterClick = (e: any) => {

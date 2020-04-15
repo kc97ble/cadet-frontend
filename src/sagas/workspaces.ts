@@ -1,13 +1,13 @@
 import {
   Context,
-  findDeclaration,
-  getNames,
+  // findDeclaration,
+  // getNames,
   interrupt,
-  Result,
+  // Result,
   resume,
   runInContext
 } from 'js-slang';
-import { TRY_AGAIN } from 'js-slang/dist/constants';
+// import { TRY_AGAIN } from 'js-slang/dist/constants';
 import { InterruptedError } from 'js-slang/dist/errors/errors';
 import { manualToggleDebugger } from 'js-slang/dist/stdlib/inspector';
 import { Variant } from 'js-slang/dist/types';
@@ -23,7 +23,7 @@ import {
   TestcaseType,
   TestcaseTypes
 } from '../components/assessment/assessmentShape';
-import { Documentation } from '../reducers/documentation';
+// import { Documentation } from '../reducers/documentation';
 import { externalLibraries } from '../reducers/externalLibraries';
 import {
   IPlaygroundState,
@@ -117,70 +117,70 @@ export default function* workspaceSaga(): SagaIterator {
     yield* evalCode(value, context, execTime, workspaceLocation, actionTypes.EVAL_EDITOR);
   });
 
-  yield takeEvery(actionTypes.PROMPT_AUTOCOMPLETE, function*(
-    action: ReturnType<typeof actions.promptAutocomplete>
-  ) {
-    const workspaceLocation = action.payload.workspaceLocation;
+  // yield takeEvery(actionTypes.PROMPT_AUTOCOMPLETE, function*(
+  //   action: ReturnType<typeof actions.promptAutocomplete>
+  // ) {
+  //   const workspaceLocation = action.payload.workspaceLocation;
 
-    context = yield select(
-      (state: IState) => (state.workspaces[workspaceLocation] as IWorkspaceState).context
-    );
+  //   context = yield select(
+  //     (state: IState) => (state.workspaces[workspaceLocation] as IWorkspaceState).context
+  //   );
 
-    const code: string = yield select((state: IState) => {
-      const prependCode = (state.workspaces[workspaceLocation] as IWorkspaceState).editorPrepend;
-      const editorCode = (state.workspaces[workspaceLocation] as IWorkspaceState).editorValue!;
-      return [prependCode, editorCode] as [string, string];
-    });
-    const [prepend, editorValue] = code;
+  //   const code: string = yield select((state: IState) => {
+  //     const prependCode = (state.workspaces[workspaceLocation] as IWorkspaceState).editorPrepend;
+  //     const editorCode = (state.workspaces[workspaceLocation] as IWorkspaceState).editorValue!;
+  //     return [prependCode, editorCode] as [string, string];
+  //   });
+  //   const [prepend, editorValue] = code;
 
-    // Deal with prepended code
-    let autocompleteCode;
-    let prependLength = 0;
-    if (!prepend) {
-      autocompleteCode = editorValue;
-    } else {
-      prependLength = prepend.split('\n').length;
-      autocompleteCode = prepend + '\n' + editorValue;
-    }
+  //   // Deal with prepended code
+  //   let autocompleteCode;
+  //   let prependLength = 0;
+  //   if (!prepend) {
+  //     autocompleteCode = editorValue;
+  //   } else {
+  //     prependLength = prepend.split('\n').length;
+  //     autocompleteCode = prepend + '\n' + editorValue;
+  //   }
 
-    const [editorNames, displaySuggestions] = yield call(
-      getNames,
-      autocompleteCode,
-      action.payload.row + prependLength,
-      action.payload.column
-    );
+  //   const [editorNames, displaySuggestions] = yield call(
+  //     getNames,
+  //     autocompleteCode,
+  //     action.payload.row + prependLength,
+  //     action.payload.column
+  //   );
 
-    if (!displaySuggestions) {
-      yield call(action.payload.callback);
-      return;
-    }
+  //   if (!displaySuggestions) {
+  //     yield call(action.payload.callback);
+  //     return;
+  //   }
 
-    const editorSuggestions = editorNames.map((name: any) => ({
-      caption: name.name,
-      value: name.name,
-      meta: name.meta,
-      score: 1000 // Prioritize suggestions from code
-    }));
+  //   const editorSuggestions = editorNames.map((name: any) => ({
+  //     caption: name.name,
+  //     value: name.name,
+  //     meta: name.meta,
+  //     score: 1000 // Prioritize suggestions from code
+  //   }));
 
-    let chapterName = context.chapter.toString();
-    if (context.variant !== 'default') {
-      chapterName += '_' + context.variant;
-    }
+  //   let chapterName = context.chapter.toString();
+  //   if (context.variant !== 'default') {
+  //     chapterName += '_' + context.variant;
+  //   }
 
-    const builtinSuggestions = Documentation.builtins[chapterName] || [];
+  //   const builtinSuggestions = Documentation.builtins[chapterName] || [];
 
-    const extLib = yield select(
-      (state: IState) => (state.workspaces[workspaceLocation] as IWorkspaceState).externalLibrary
-    );
+  //   const extLib = yield select(
+  //     (state: IState) => (state.workspaces[workspaceLocation] as IWorkspaceState).externalLibrary
+  //   );
 
-    const extLibSuggestions = Documentation.externalLibraries[extLib] || [];
+  //   const extLibSuggestions = Documentation.externalLibraries[extLib] || [];
 
-    yield call(
-      action.payload.callback,
-      null,
-      editorSuggestions.concat(builtinSuggestions, extLibSuggestions)
-    );
-  });
+  //   yield call(
+  //     action.payload.callback,
+  //     null,
+  //     editorSuggestions.concat(builtinSuggestions, extLibSuggestions)
+  //   );
+  // });
 
   yield takeEvery(actionTypes.TOGGLE_EDITOR_AUTORUN, function*(
     action: ReturnType<typeof actions.toggleEditorAutorun>
@@ -499,34 +499,34 @@ export default function* workspaceSaga(): SagaIterator {
     yield undefined;
   });
 
-  yield takeEvery(actionTypes.NAV_DECLARATION, function*(
-    action: ReturnType<typeof actions.navigateToDeclaration>
-  ) {
-    const workspaceLocation = action.payload.workspaceLocation;
-    const code: string = yield select(
-      (state: IState) => (state.workspaces[workspaceLocation] as IWorkspaceState).editorValue
-    );
-    context = yield select(
-      (state: IState) => (state.workspaces[workspaceLocation] as IWorkspaceState).context
-    );
+  // yield takeEvery(actionTypes.NAV_DECLARATION, function*(
+  //   action: ReturnType<typeof actions.navigateToDeclaration>
+  // ) {
+  //   const workspaceLocation = action.payload.workspaceLocation;
+  //   const code: string = yield select(
+  //     (state: IState) => (state.workspaces[workspaceLocation] as IWorkspaceState).editorValue
+  //   );
+  //   context = yield select(
+  //     (state: IState) => (state.workspaces[workspaceLocation] as IWorkspaceState).context
+  //   );
 
-    const result = findDeclaration(code, context, {
-      line: action.payload.cursorPosition.row + 1,
-      column: action.payload.cursorPosition.column
-    });
-    if (result) {
-      yield put(
-        actions.moveCursor(action.payload.workspaceLocation, {
-          row: result.start.line - 1,
-          column: result.start.column
-        })
-      );
-    }
-  });
+  //   const result = findDeclaration(code, context, {
+  //     line: action.payload.cursorPosition.row + 1,
+  //     column: action.payload.cursorPosition.column
+  //   });
+  //   if (result) {
+  //     yield put(
+  //       actions.moveCursor(action.payload.workspaceLocation, {
+  //         row: result.start.line - 1,
+  //         column: result.start.column
+  //       })
+  //     );
+  //   }
+  // });
 }
 
 let lastDebuggerResult: any;
-let lastNonDetResult: Result;
+// let lastNonDetResult: Result;
 function* updateInspector(workspaceLocation: WorkspaceLocation) {
   try {
     const start = lastDebuggerResult.context.runtime.nodes[0].loc.start.line - 1;
@@ -613,17 +613,18 @@ export function* evalCode(
   }
 
   function call_variant(variant: Variant) {
-    if (variant === 'non-det') {
-      return code.trim() === TRY_AGAIN
-        ? call(resume, lastNonDetResult)
-        : code.includes(TRY_AGAIN) // defensive check: try-again should only be used on its own
-        ? { status: 'error' }
-        : call(runInContext, code, context, {
-            executionMethod: 'interpreter',
-            originalMaxExecTime: execTime,
-            useSubst: substActiveAndCorrectChapter
-          });
-    } else if (variant === 'lazy') {
+    // if (variant === 'non-det') {
+    //   return code.trim() === TRY_AGAIN
+    //     ? call(resume, lastNonDetResult)
+    //     : code.includes(TRY_AGAIN) // defensive check: try-again should only be used on its own
+    //     ? { status: 'error' }
+    //     : call(runInContext, code, context, {
+    //         executionMethod: 'interpreter',
+    //         originalMaxExecTime: execTime,
+    //         useSubst: substActiveAndCorrectChapter
+    //       });
+    // } else
+    if (variant === 'lazy') {
       return call(runInContext, code, context, {
         scheduler: 'preemptive',
         originalMaxExecTime: execTime,
@@ -695,7 +696,7 @@ export function* evalCode(
     if (result.value === 'cut') {
       result.value = undefined;
     }
-    lastNonDetResult = result;
+    // lastNonDetResult = result;
   }
 
   // Do not write interpreter output to REPL, if executing chunks (e.g. prepend/postpend blocks)
