@@ -232,6 +232,7 @@ export const sourceLanguages: ISourceLanguage[] = [
   { chapter: 3, variant: 'default' },
   { chapter: 3, variant: 'concurrent' },
   { chapter: 3, variant: 'non-det' },
+  { chapter: 3, variant: 'lazy' },
   { chapter: 4, variant: 'default' }
 ];
 
@@ -244,7 +245,8 @@ const variantDisplay: Map<Variant, string> = new Map([
 export const styliseChapter = (chap: number, variant: Variant = 'default') => {
   let res = `Source \xa7${chap}`;
   if (variantDisplay.has(variant)) {
-    res += ' ' + variantDisplay.get(variant);
+    res +=
+      ' ' + variantDisplay.get(variant) + (chap === 3 && variant === 'lazy' ? ' (deprecated)' : '');
   }
   return res;
 };
